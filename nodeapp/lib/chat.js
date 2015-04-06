@@ -18,7 +18,8 @@ var chat = function(io){
 			// Save email to redis
 			// Key: value => socket.id: user hash
 			var userHash = {
-				id: socket.id
+				id: socket.id,
+				email: socket.handshake.query.email
 			};
 			/*Sets the specified fields to their respective values in the hash stored at key. This command overwrites any existing fields in the hash. If key does not exist, a new key holding a hash is created.*/
 			redisClient.hmset(socket.id, userHash);
@@ -41,6 +42,11 @@ var chat = function(io){
 	});
 
 	namespace.on('connection', function(socket){
+		console.log("Login to server chat");
+		var name = socket.handshake.query.name;
+		var room = socket.handshake.query.room;
+		console.log(name);
+		socket.to(room).emit('newmember', name);
 		// Let other people in rooms know that this socket has left
 		socket.on('disconnect', function(){
 			var room = socket.handshake.query.room;
@@ -52,7 +58,7 @@ var chat = function(io){
 		// Send message to all members in room
 		socket.on('message', function(message){
 			socket.rooms.forEach(function(room){
-				socket.to(room).emit('message', message, socket.handshake.query.name)
+				socket.to(room).emit('message', message)
 			});
 		});
 	});

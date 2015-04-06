@@ -1,3 +1,4 @@
 Rails.application.routes.draw do
-  get 'chatroom' => 'realtimes#chatroom'
+	get 'home' => 'realtimes#index'
+	post 'chatroom' => 'realtimes#chatroom'
 end

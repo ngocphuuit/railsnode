@@ -1,25 +1,70 @@
-<h3>Chat Room</h3>
-<button id="joinroom">JoinRoom</button>
+<div class="container">
+	<h3 style="text-align: center">Chat Room</h3>
+	<h6>Your name: <%= @name %></h6>
+	<div id="display" style="height: 500px; overflow-y: scroll; border: 1px dashed">
+		<ul class="collection" id="displaymessage">
+			<li class="collection-item"><span><b>NoPu : </b></span>Alvin</li>
+		</ul>
+	</div>
+	<div id="sendmes" class="row">
+		<div class="input-field col s10">
+			<input id="message" type="text" class="validate">
+			<label for="last_name">Your message</label>
+		</div>
+		<div class="input-field col s2">
+			<button class="btn waves-effect waves-light" type="submit" name="action" id="sendMessage">Send
+				<i class="mdi-content-send right"></i>
+			</button>
+		</div>
+	</div>
+</div>
+
 <script>
+	var socket = io.connect('http://localhost:5000/chat',{
+		query: 'email=nopunguyen@gmail.com&name=<%= @name %>&room=chat-1',
+		forceNew: true,
+		transports: ['websocket']
+	});
+	console.log(socket);
 
-	// $window.io.connect('//localhost:5000/chat',{
-	// 	query: 'email=nopunguyen@gmail.com&name=nopu&room=chat-1',
-	// 	forceNew: true,
-	// 	transports: ['websocket']
-	// });
-var socket = io();
+	socket.on('memberList', function(data){
+		console.log(data);
+	});
 
-// connect: function() {
-// 	socket = $window.io.connect('//localhost:5000/chat',{
-// 		query: 'email=nopunguyen@gmail.com&name=nopu&room=chat-1',
-// 		forceNew: true,
-// 		transports: ['websocket']
-// 	});
-// },
+	$('#sendMessage').click(function(){
+		sendmess();
+		var element = document.getElementById('display');
+		element.scrollTop = element.scrollHeight - element.clientHeight;
+	});
 
+	$('#message').keypress(function(event){
+		if ( event.which == 13 ) {
+			sendmess();
+			var element = document.getElementById('display');
+			element.scrollTop = element.scrollHeight - element.clientHeight;
+		}
+	});
 
-// socket.once('memberList', function(data){
-// 	console.log("data");
-// });
+	socket.on('message', function(message){
+		$('#displaymessage').append(message);
+	});
+
+	socket.on('newmember', function(name){
+		var html = '<li class="collection-item"><span><b style="color: Red">System : </b></span><i>'+name+' has joined room !!!</i></li>';
+		$('#displaymessage').append(html);
+	});
+
+	function sendmess(){
+		var message = $('#message').val();
+		if (message == ''){
+			var html = '<li class="collection-item"><span><b style="color: Red">System : </b></span>Message is undefined !!!</li>';
+			$('#displaymessage').append(html);
+		} else {
+			var html = '<li class="collection-item"><span><b><%= @name %> : </b></span>'+message+'</li>';
+			$('#displaymessage').append(html);
+			$('#message').val('');
+			socket.emit('message', html);
+		}
+	}
 
 </script>
